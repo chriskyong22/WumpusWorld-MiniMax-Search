@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Logic {
 
     private Grid map;
@@ -32,10 +34,11 @@ public class Logic {
                     map.destroyCell(goal);
                     value = 0;
                     break;
-                case 1: //your piece wins, so opponent piece gets destroyed
+                case 1: //your piece wins, so opponent gets destroyed
+                    map.destroyCell(goal);
                     goal.setPlayerPiece(start.belongToPlayer());
                     goal.setType(start.getType());
-                    map.destroyCell(start);
+                    start.reset();
                     value = 1000;
                     break;
                 case 2: //opponent piece wins, so your piece should be destroyed (Opponent +1 pieces over you)
@@ -46,11 +49,12 @@ public class Logic {
         }else{ //Moving into an empty space, nothing really happens no pieces get destroyed
             goal.setPlayerPiece(start.belongToPlayer());
             goal.setType(start.getType());
-            map.destroyCell(start);
+            start.reset();
             value = 0;
         }
         return value;
     }
+
 
     /**
      * Check if a win condition has been met
@@ -70,9 +74,20 @@ public class Logic {
         }
     }
 
+    public ArrayList<Cell> possibleMoves(Cell c1){
+        ArrayList<Cell> moves = map.getNeighbors(c1.getRow(), c1.getCol());
+        for(Cell neighbor : moves){
+            if(!isValidMove(c1, neighbor)){
+                moves.remove(neighbor);
+            }
+        }
+        return moves;
+    }
+
+
     public boolean isValidMove(Cell cell1, Cell cell2){
-        return !(cell1.belongToPlayer() == '1' && cell2.belongToPlayer() == '1' ||
-                cell1.belongToPlayer() == '2' && cell2.belongToPlayer() == '2');
+        return (cell1.belongToPlayer() == '1' && cell2.belongToPlayer() == '2' ||
+                cell1.belongToPlayer() == '2' && cell2.belongToPlayer() == '1');
     }
 
     /**

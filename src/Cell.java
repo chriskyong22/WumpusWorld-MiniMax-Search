@@ -1,19 +1,35 @@
 public class Cell {
     private char cellType;
     private char playerPiece;
-    public Cell(){
+    private int row;
+    private int col;
+    public Cell(int row, int col){
         this.cellType = 'E';
         this.playerPiece = '0';
+        this.row = row;
+        this.col = col;
     }
 
-    public Cell(char type){
-        this.cellType = type;
-        this.playerPiece = '0';
-    }
-
-    public Cell(char type, char playerPiece){
+    public Cell(char type, char playerPiece, int row, int col){
         this.cellType = type;
         this.playerPiece = playerPiece;
+        this.row = row;
+        this.col = col;
+    }
+
+    public int getRow(){
+        return this.row;
+    }
+    public void setRow(int row){
+        this.row = row;
+    }
+
+    public void setCol(int col){
+        this.col = col;
+    }
+
+    public int getCol(){
+        return this.col;
     }
 
     public boolean isEmpty(){
@@ -24,7 +40,7 @@ public class Cell {
         return this.cellType == 'P';
     }
 
-    public void destroy(){
+    public void reset(){
         this.cellType = 'E';
         this.playerPiece = '0';
     }
@@ -49,6 +65,14 @@ public class Cell {
 
     public void setType(char type){
         this.cellType = type;
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(other == null || !(other instanceof Cell)){
+            return false;
+        }
+        return (this.row == ((Cell) other).getRow() && this.col == ((Cell) other).getCol());
     }
 
 }
