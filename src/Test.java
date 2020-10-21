@@ -26,6 +26,13 @@ public class Test {
             String goalX = stop.substring(stop.indexOf(' ') + 1, stop.indexOf(',', stop.indexOf(' ') + 1));
             String goalY = stop.substring(stop.indexOf(',', stop.indexOf(' ') + 1) + 1, stop.length());
             System.out.println("Parsed:\n[" + originX + "," + originY + "]\n[" + goalX + "," + goalY + "]");
+            Cell origin = test.getCell(Integer.valueOf(originX), Integer.valueOf(originY));
+            Cell goal = test.getCell(Integer.valueOf(goalX), Integer.valueOf(goalY));
+            temp.move(origin, goal);
+            System.out.println("Your Move:");
+            test.printMap();
+            System.out.println("\n\n\n");
+            temp.run(0);
         }
 
     }

@@ -15,6 +15,10 @@ public class Logic {
     }
 
     public void run(int heuristicSelected){
+        if(checkWin() != -1){
+            System.out.println("Game over!\n");
+            return;
+        }
         double value = alphabeta(map, this.depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true, heuristicSelected);
         System.out.println("The value is: " + value);
         map.printMap();
@@ -64,7 +68,6 @@ public class Logic {
             };
             PriorityQueue<Move> queue = new PriorityQueue<Move>(11, newComp);
             queue.addAll(allPossibleMoves(1,heuristicSelected));
-            System.out.println("Priority queue values are: " + queue);
             while(!queue.isEmpty()){
                 Move child = queue.poll();
                 int playerCount =  map.getPlayerCount();
@@ -225,7 +228,7 @@ public class Logic {
     }
 
     public ArrayList<Cell> possibleMoves(Cell c1){
-        c1.printCell();
+        //c1.printCell();
         ArrayList<Cell> moves = map.getNeighbors(c1.getRow(), c1.getCol());
         moves.removeIf(move -> !isValidMove(c1, move));
         return moves;
