@@ -73,6 +73,35 @@ public class Grid {
         return x < 0 || x >= gridSize || y < 0 || y >= gridSize;
     }
 
+    public ArrayList<Cell> getAICells(){
+        ArrayList<Cell> aiCells = new ArrayList<Cell>();
+        for(int row = 0; row < gridSize; row++){
+            for(int col = 0; col < gridSize; col++){
+                if(map[row][col].belongToPlayer() == '2'){
+                    aiCells.add(map[row][col]);
+                }
+            }
+        }
+        return aiCells;
+    }
+
+    public ArrayList<Cell> getPlayerCells(){
+        ArrayList<Cell> playerCells = new ArrayList<Cell>();
+        for(int row = 0; row < gridSize; row++){
+            for(int col = 0; col < gridSize; col++){
+                if(map[row][col].belongToPlayer() == '1'){
+                    playerCells.add(map[row][col]);
+                }
+            }
+        }
+        return playerCells;
+    }
+
+    public void setCell(Cell c1){
+        this.map[c1.getRow()][c1.getCol()].setType(c1.getType());
+        this.map[c1.getRow()][c1.getCol()].setPlayerPiece(c1.belongToPlayer());
+    }
+
     public ArrayList<Cell> getNeighbors(int row, int col){
         //Safety check to make sure you're not getting neighbors for out of bounds points
         if(checkOutOfBounds(row, col)){
@@ -85,10 +114,13 @@ public class Grid {
         for(int posX = row - 1; posX <= row + 1; posX++){
             for(int posY = col - 1; posY <= col + 1; posY++){
                 if(!checkOutOfBounds(posX, posY) && (posX != row || posY != col)){
+                    System.out.println("POSX: " + posX + " POSY: " + posY);
+                    map[posX][posY].printCell();
                     neighbors.add(map[posX][posY]);
                 }
             }
         }
+        System.out.println(neighbors.size());
         return neighbors;
     }
 
@@ -104,7 +136,7 @@ public class Grid {
         }
     }
 
-    public void setPlayerCount(int count){
+    public void setPlayerPieces(int count){
         this.playerPieces = count;
     }
 

@@ -3,6 +3,8 @@ public class Cell {
     private char playerPiece;
     private int row;
     private int col;
+
+
     public Cell(int row, int col){
         this.cellType = 'E';
         this.playerPiece = '0';
@@ -15,6 +17,10 @@ public class Cell {
         this.playerPiece = playerPiece;
         this.row = row;
         this.col = col;
+    }
+
+    public Cell copy(){
+        return new Cell(this.cellType, this.playerPiece, this.row, this.col);
     }
 
     public int getRow(){
@@ -43,6 +49,10 @@ public class Cell {
     public void reset(){
         this.cellType = 'E';
         this.playerPiece = '0';
+    }
+
+    public void printCell(){
+        System.out.println("[X: " + this.row + ",Y: " + this.col + "] PlayerPiece: " + this.playerPiece + " cellType: " + this.cellType);
     }
 
     /**
