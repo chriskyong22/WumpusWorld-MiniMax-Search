@@ -114,8 +114,8 @@ public class Grid {
         for(int posX = row - 1; posX <= row + 1; posX++){
             for(int posY = col - 1; posY <= col + 1; posY++){
                 if(!checkOutOfBounds(posX, posY) && (posX != row || posY != col)){
-                    System.out.println("POSX: " + posX + " POSY: " + posY);
-                    map[posX][posY].printCell();
+                    //System.out.println("POSX: " + posX + " POSY: " + posY);
+                    //map[posX][posY].printCell();
                     neighbors.add(map[posX][posY]);
                 }
             }

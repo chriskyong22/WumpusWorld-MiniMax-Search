@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Test {
     public static void main(String[] args){
@@ -12,5 +13,20 @@ public class Test {
         temp.move(test.getCell(0,2), test.getCell(4,1));
         test.printMap();
         temp.run(0);
+        String stop = "";
+        while(!stop.equals("stop")){
+            Scanner input = new Scanner(System.in);
+            stop = input.nextLine();
+            System.out.println("Your input is: " + stop);
+            if(stop.equals("stop")){
+                break;
+            }
+            String originX = stop.substring(0, stop.indexOf(','));
+            String originY = stop.substring(stop.indexOf(',') + 1, stop.indexOf(' '));
+            String goalX = stop.substring(stop.indexOf(' ') + 1, stop.indexOf(',', stop.indexOf(' ') + 1));
+            String goalY = stop.substring(stop.indexOf(',', stop.indexOf(' ') + 1) + 1, stop.length());
+            System.out.println("Parsed:\n[" + originX + "," + originY + "]\n[" + goalX + "," + goalY + "]");
+        }
+
     }
 }

@@ -31,12 +31,12 @@ public class Logic {
     public double calculateHeuristic(int heuristic){ //Heuristics should be in the view of the AI
         switch(heuristic){
             case 0:
-                if(map.getAICount() > map.getPlayerCount()){
+                if(map.getAICount() != 0 && map.getPlayerCount() == 0){
                     return 100;
-                }else if(map.getAICount() == map.getPlayerCount()){
-                    return 0;
-                }else{
+                }else if(map.getPlayerCount() != 0 && map.getAICount() == 0){
                     return -100;
+                }else{
+                    return ((map.getAICount() - map.getPlayerCount()) * 10.0);
                 }
             default:
                 break;
@@ -53,11 +53,18 @@ public class Logic {
             Comparator<Move> newComp = new Comparator<Move>() {
                 @Override
                 public int compare(Move o1, Move o2) {
-                   return Double.compare(o1.getHeuristicValue(), o2.getHeuristicValue());
+                    if(o1.getHeuristicValue() < o2.getHeuristicValue()){
+                        return 1;
+                    }else if(o1.getHeuristicValue() == o2.getHeuristicValue()){
+                        return 0;
+                    }else{
+                        return -1;
+                    }
                 }
             };
             PriorityQueue<Move> queue = new PriorityQueue<Move>(11, newComp);
             queue.addAll(allPossibleMoves(1,heuristicSelected));
+            System.out.println("Priority queue values are: " + queue);
             while(!queue.isEmpty()){
                 Move child = queue.poll();
                 int playerCount =  map.getPlayerCount();
@@ -85,13 +92,7 @@ public class Logic {
             Comparator<Move> newComp = new Comparator<Move>() {
                 @Override
                 public int compare(Move o1, Move o2) {
-                    if(o1.getHeuristicValue() < o2.getHeuristicValue()){
-                        return 1;
-                    }else if(o1.getHeuristicValue() == o2.getHeuristicValue()){
-                        return 0;
-                    }else{
-                        return -1;
-                    }
+                    return Double.compare(o1.getHeuristicValue(), o2.getHeuristicValue());
                 }
             };
 
