@@ -1,3 +1,5 @@
+package sample.back;
+
 public class Cell {
     private char cellType;
     private char playerPiece;
