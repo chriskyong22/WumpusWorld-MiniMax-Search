@@ -8,6 +8,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import sample.back.*;
 
+import java.awt.*;
+
 public class Controller {
 
     //inject FXML objects
@@ -19,6 +21,9 @@ public class Controller {
     private Pane gridPane;
 
     Grid g = new Grid();
+    Logic l = new Logic(g,3);
+    Point start = null;
+    Point goal = null;
 
     /**
     @FXML
@@ -35,8 +40,8 @@ public class Controller {
 
         int dimension = Integer.parseInt(dimField.getText());
         g = new Grid(dimension);
+        l = new Logic(g,3);
         buildGrid(g);
-
     }
 
     /**
@@ -59,11 +64,15 @@ public class Controller {
         int gap = 5;
         Rectangle[][] cells = new Rectangle[dim][dim];
 
+
         for (int y = 0; y < dim; y++){
             for (int x = 0; x < dim; x++){
+                final int finalX = x;
+                final int finalY = y;
                 cells[x][y] = new Rectangle(size,size);
                 cells[x][y].setX(offset + x*(size + gap));
                 cells[x][y].setY(offset + y*(size + gap));
+                cells[x][y].setOnMouseClicked(e -> select(finalX,finalY));
 
                 switch(g.map[y][x].getType()){
                     case 'E':
@@ -87,8 +96,44 @@ public class Controller {
 
             }
         }
+    }
 
+    private void select(int x, int y){
+        if (start == null){
+            start = new Point(x,y);
+            return;
+        }
+        else{
+            goal = new Point(x,y);
+        }
+        Cell startCell = g.getCell((int) start.getY(),(int) start.getX());
+        Cell goalCell = g.getCell((int) goal.getY(),(int) goal.getX());
+        if(l.isValidMove(startCell,goalCell)) {
+            l.move(startCell, goalCell);
+            buildGrid(g);
+        }
+        start = null;
+        goal = null;
+    }
 
-
+    @FXML
+    private void nextTurn(){
+        l.run(0);
+        buildGrid(g);
+        int gameCon = l.checkWin();
+        switch (gameCon){
+            case 0:
+                gameStatusLabel.setText("Game Status: \n It's a Draw");
+                break;
+            case 1:
+                gameStatusLabel.setText("Game Status: \n Player Wins");
+                break;
+            case 2:
+                gameStatusLabel.setText("Game Status: \n AI Wins");
+                break;
+            default:
+                gameStatusLabel.setText("Game Status: \n In Progress");
+                break;
+        }
     }
 }
