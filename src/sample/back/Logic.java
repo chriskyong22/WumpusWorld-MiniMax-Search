@@ -23,8 +23,8 @@ public class Logic {
         }
         double value = alphabeta(map, this.depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true, heuristicSelected);
         System.out.println("The value is: " + value);
-        map.printMap();
-        System.out.println("\n\n\n\n");
+        //map.printMap();
+        //System.out.println("\n\n\n\n");
         move(map.getCell(bestMove.getOrigin().getRow(), bestMove.getOrigin().getCol()),  map.getCell(bestMove.getGoal().getRow(), bestMove.getGoal().getCol()));
         map.printMap();
     }
