@@ -1,19 +1,23 @@
 package sample.back;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Grid {
     private int gridSize;
     public Cell[][] map;
     private int playerPieces;
     private int aiPieces;
+    private ArrayList<Cell> pitLocations;
 
     public Grid(){
         this.gridSize = 3;
+        this.pitLocations = new ArrayList<Cell>();
         initializeMap();
     }
     public Grid(int gridSize){
         this.gridSize = gridSize;
+        this.pitLocations = new ArrayList<Cell>();
         initializeMap();
     }
 
@@ -30,6 +34,7 @@ public class Grid {
                 int pitCol = (int) (Math.random() * gridSize);
                 if(map[row][pitCol].getType() == 'E'){
                     map[row][pitCol].setType('P');
+                    this.pitLocations.add(map[row][pitCol]);
                     numOfPits--;
                 }
             }
@@ -54,6 +59,8 @@ public class Grid {
             map[gridSize-1][col] = new Cell(type, '2', gridSize-1, col);
         }
     }
+
+    public ArrayList<Cell> getPitLocations() { return this.pitLocations; }
 
     public int getPlayerCount(){
         return playerPieces;

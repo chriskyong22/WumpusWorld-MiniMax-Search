@@ -8,7 +8,7 @@ public class Test {
         Grid test = new Grid(6);
         //test.printMap();
         //System.out.println("\n\n\n\n");
-        Logic temp = new Logic(test, 3);
+        Logic temp = new Logic(test, 6);
         //test.printMap();
         //ArrayList<Move> moves = temp.allPossibleMoves(1, 0);
         //System.out.println(moves.size());

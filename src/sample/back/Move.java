@@ -39,6 +39,12 @@ public class Move {
     }
 
     @Override
+    public String toString() {
+        // added this for testing purposes
+        return "" + this.heuristicValue;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(origin, goal, heuristicValue);
     }

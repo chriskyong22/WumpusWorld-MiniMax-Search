@@ -1,9 +1,9 @@
 package sample.back;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.PriorityQueue;
+import java.lang.Math;
 
 public class Logic {
 
@@ -11,7 +11,7 @@ public class Logic {
     private int depth;
     private Move bestMove;
 
-    public Logic(Grid map, int depthSearch){
+    public Logic(Grid map, int depthSearch) {
         this.map = map;
         this.depth = depthSearch;
     }
@@ -21,7 +21,7 @@ public class Logic {
             System.out.println("Game over!\n");
             return;
         }
-        double value = alphabeta(map, this.depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true, heuristicSelected);
+        double value = alphabeta(this.map, this.depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true, heuristicSelected);
         System.out.println("The value is: " + value);
         //map.printMap();
         //System.out.println("\n\n\n\n");
@@ -34,16 +34,111 @@ public class Logic {
         map.setCell(c2);
     }
 
-    public double calculateHeuristic(int heuristic){ //Heuristics should be in the view of the AI
+    public double averageDistanceToPits(boolean AI) {
+        double totalAverageDist = 0;
+
+        ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
+
+        for (Cell cell : piecesToUse) {
+            double totalDist = 0;
+            int x1 = cell.getRow();
+            int y1 = cell.getCol();
+            for (Cell pitCell : this.map.getPitLocations()) {
+                int x2 = pitCell.getRow();
+                int y2 = pitCell.getCol();
+                double euclideanDist = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+                totalDist += euclideanDist;
+            }
+            totalAverageDist += (totalDist / this.map.getPitLocations().size());
+        }
+
+        return totalAverageDist / piecesToUse.size();
+    }
+
+    public ArrayList<Cell> getKillableEnemyLocations(Cell cell) {
+        Character piece = cell.getType();
+
+        ArrayList<Cell> killableEnemyLocations = new ArrayList<>();
+        HashSet<Character> killableEnemies = new HashSet<>();
+
+        switch (piece) {
+            case 'W':
+                killableEnemies.add('W');
+                killableEnemies.add('M');
+                break;
+            case 'H':
+                killableEnemies.add('H');
+                killableEnemies.add('W');
+                break;
+            case 'M':
+                killableEnemies.add('M');
+                killableEnemies.add('H');
+                break;
+        }
+
+        for (int i = 0; i < map.getMapSize(); i++) {
+            for (int j = 0; j < map.getMapSize(); j++) {
+                // check if the current piece is an opposing player
+                if ((cell.belongToPlayer() == 1 && this.map.getCell(i,j).belongToPlayer() == 2) ||
+                (cell.belongToPlayer() == 2 && this.map.getCell(i,j).belongToPlayer() == 1)) {
+                    //check if this enemy is killable, given our piece
+                    if (killableEnemies.contains(this.map.getCell(i,j).getType())) {
+                        killableEnemyLocations.add(map.getCell(i,j));
+                    }
+                }
+            }
+        }
+
+        return killableEnemyLocations;
+    }
+
+    public double getAvgClosestKillableEnemy(boolean AI) {
+        double totalMinDist = 0;
+
+        ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
+
+        for (Cell cell : piecesToUse) {
+            double minDistToEnemy = Integer.MAX_VALUE;
+            ArrayList<Cell> killableEnemyLocations = getKillableEnemyLocations(cell);
+            int x1 = cell.getRow();
+            int y1 = cell.getCol();
+
+            for (Cell killableEnemyLocation : killableEnemyLocations) {
+                int x2 = killableEnemyLocation.getRow();
+                int y2 = killableEnemyLocation.getCol();
+                double euclideanDist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+                minDistToEnemy = Math.min(minDistToEnemy, euclideanDist);
+            }
+
+            totalMinDist += minDistToEnemy;
+        }
+
+        return totalMinDist / piecesToUse.size();
+    }
+
+    public double calculatePiecesDifference(boolean AI) {
+        double WEIGHT = 10;
+
+        if (AI) { //AI
+            return (map.getAICount() - map.getPlayerCount()) * WEIGHT;
+        }
+
+        // PLAYER
+        return (map.getPlayerCount() - map.getAICount()) * WEIGHT;
+    }
+
+    public double calculateHeuristic(int heuristic, boolean AI){ //Heuristics should be in the view of the AI
         switch(heuristic){
             case 0:
-                if(map.getAICount() != 0 && map.getPlayerCount() == 0){
-                    return 100;
-                }else if(map.getPlayerCount() != 0 && map.getAICount() == 0){
-                    return -100;
-                }else{
-                    return ((map.getAICount() - map.getPlayerCount()) * 10.0);
-                }
+//                if(map.getAICount() != 0 && map.getPlayerCount() == 0){
+//                    return 100;
+//                }else if(map.getPlayerCount() != 0 && map.getAICount() == 0){
+//                    return -100;
+//                }else{
+//                    return ((map.getAICount() - map.getPlayerCount()) * 10.0);
+//                }
+                double heuristicVal = 0.10*averageDistanceToPits(AI) - (0.30*getAvgClosestKillableEnemy(AI)) + 0.6*calculatePiecesDifference(AI);
+                return AI ? heuristicVal : -1*heuristicVal;
             default:
                 break;
         }
@@ -52,57 +147,48 @@ public class Logic {
     //Initial Call, a = -infinity | b = +infinity
     public double alphabeta(Grid map, int depth, double a, double b, boolean maximizingPlayer, int heuristicSelected){
         if(depth == 0 || checkWin() != -1){
-            return calculateHeuristic(heuristicSelected);
+            return calculateHeuristic(heuristicSelected, maximizingPlayer);
         }
-        if(maximizingPlayer){ //AI TURN
-            double value = Integer.MIN_VALUE;
-            Comparator<Move> newComp = new Comparator<Move>() {
-                @Override
-                public int compare(Move o1, Move o2) {
-                    if(o1.getHeuristicValue() < o2.getHeuristicValue()){
-                        return 1;
-                    }else if(o1.getHeuristicValue() == o2.getHeuristicValue()){
-                        return 0;
-                    }else{
-                        return -1;
-                    }
-                }
-            };
-            PriorityQueue<Move> queue = new PriorityQueue<Move>(11, newComp);
-            queue.addAll(allPossibleMoves(1,heuristicSelected));
-            while(!queue.isEmpty()){
+        if(maximizingPlayer) { //AI TURN
+            double maxEvaluation = Integer.MIN_VALUE;
+
+            // lambda expression ensures highest heuristic value will be at top.
+            PriorityQueue<Move> queue = new PriorityQueue<Move>(11, (Move m1, Move m2) -> Double.compare(m2.getHeuristicValue(), m1.getHeuristicValue()));
+            queue.addAll(allPossibleMoves(1, heuristicSelected));
+
+            while(!queue.isEmpty()) {
                 Move child = queue.poll();
                 int playerCount =  map.getPlayerCount();
                 int aiCount = map.getAICount();
                 Cell origin = map.getCell(child.getOrigin().getRow(), child.getOrigin().getCol());
                 Cell goal = map.getCell(child.getGoal().getRow(), child.getGoal().getCol());
                 move(origin, goal);
-                double temp = alphabeta(map, depth - 1, a, b, false, heuristicSelected);
-                if(depth == this.depth && temp > value){ // Selects the best move for the AI (based on initial state of the board (depth == this.depth)
+
+                double curEvaluation = alphabeta(map, depth - 1, a, b, false, heuristicSelected);
+                if(depth == this.depth && curEvaluation > maxEvaluation) { // Selects the best move for the AI (based on initial state of the board (depth == this.depth)
                     bestMove = child;
                 }
+
+                // undo move to test next move
                 map.setPlayerPieces(playerCount);
                 map.setAIPieces(aiCount);
                 resetMap(child.getOrigin(), child.getGoal());
 
-                value = Math.max(value, temp);
-                a = Math.max(a, value);
-                if(a >= b){
+                maxEvaluation = Math.max(maxEvaluation, curEvaluation);
+                a = Math.max(a, maxEvaluation);
+                if(a >= b) {
                     break;
                 }
             }
-            return value;
-        }else{ //PLAYER TURN
-            double value = Integer.MAX_VALUE;
-            Comparator<Move> newComp = new Comparator<Move>() {
-                @Override
-                public int compare(Move o1, Move o2) {
-                    return Double.compare(o1.getHeuristicValue(), o2.getHeuristicValue());
-                }
-            };
+            return maxEvaluation;
+        } else { //PLAYER TURN
 
-            PriorityQueue<Move> queue = new PriorityQueue<Move>(11, newComp);
+            double minEvaluation = Integer.MAX_VALUE;
+
+            // lambda expression ensures lowest heuristic value will be at top.
+            PriorityQueue<Move> queue = new PriorityQueue<Move>(11, (Move m1, Move m2) -> Double.compare(m1.getHeuristicValue(), m2.getHeuristicValue()));
             queue.addAll(allPossibleMoves(2,heuristicSelected));
+
             while(!queue.isEmpty()){
                 Move child = queue.poll();
                 int playerCount =  map.getPlayerCount();
@@ -111,18 +197,20 @@ public class Logic {
                 Cell goal = map.getCell(child.getGoal().getRow(), child.getGoal().getCol());
                 move(origin, goal);
 
-                value = Math.min(value, alphabeta(map, depth - 1, a, b, true, heuristicSelected));
+                double curEvaluation = alphabeta(map, depth - 1, a, b, true, heuristicSelected);
+                minEvaluation = Math.min(minEvaluation, curEvaluation);
 
+                // undo move to test next move
                 map.setPlayerPieces(playerCount);
                 map.setAIPieces(aiCount);
                 resetMap(child.getOrigin(), child.getGoal());
 
-                b = Math.min(b, value);
+                b = Math.min(b, minEvaluation);
                 if(b <= a){
                     break;
                 }
             }
-            return value;
+            return minEvaluation;
         }
     }
     /**
@@ -196,7 +284,7 @@ public class Logic {
                         int playerCount =  map.getPlayerCount();
                         int aiCount = map.getAICount();
                         move(aiCell, move);
-                        double heuristic = calculateHeuristic(heuristicSelected);
+                        double heuristic = calculateHeuristic(heuristicSelected, true);
                         resetMap(copyOrigin, copyGoal);
                         map.setPlayerPieces(playerCount);
                         map.setAIPieces(aiCount);
@@ -214,7 +302,7 @@ public class Logic {
                         int playerCount =  map.getPlayerCount();
                         int aiCount = map.getAICount();
                         move(playerCell, move);
-                        double heuristic = calculateHeuristic(heuristicSelected);
+                        double heuristic = calculateHeuristic(heuristicSelected, false);
                         resetMap(copyOrigin, copyGoal);
                         map.setPlayerPieces(playerCount);
                         map.setAIPieces(aiCount);
