@@ -2,7 +2,10 @@ package sample;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
@@ -19,18 +22,27 @@ public class Controller {
     private TextField dimField;
     @FXML
     private Pane gridPane;
+    @FXML
+    private TextField depthField;
+    @FXML
+    private Label valueLabel;
+    @FXML
+    private ListView<String> heuristicList;
+    @FXML
+    private Label currLabel;
 
     Grid g = new Grid();
     Logic l = new Logic(g,3);
+    String[] heuristics = new String[]{"Heuristic 1","Heuristic 2","Heuristic 3","Heuristic 4","Heuristic 5"};
     Point start = null;
     Point goal = null;
 
-    /**
+
     @FXML
     public void initialize(){
-
+        heuristicList.getItems().addAll(heuristics);
     }
-**/
+
 
     /**
      * Starts a game with the user's chosen dimensions.
@@ -45,13 +57,18 @@ public class Controller {
     }
 
     /**
+     * Sets the search depth per user selection. Default is 3.
+     */
+    @FXML
+    public void selectDepth(){
+        l = new Logic(g,(int) Double.parseDouble(depthField.getText()));
+    }
+
+    /**
      * Builds a grid in the output pane
      * Color Coding:
-     * Empty Cell - White
-     * Hero Cell - Silver
-     * Mage Cell - Blue
-     * Wumpus Cell - Brown
-     * Pit Cell - Black
+     * player piece - blue
+     * ai piece - green
      * @param g - grid to be built
      */
     public void buildGrid(Grid g){
@@ -62,49 +79,82 @@ public class Controller {
         int size = 75;
         int offset = 200;
         int gap = 5;
-        Rectangle[][] cells = new Rectangle[dim][dim];
-
+        ImageView[][] cells = new ImageView[dim][dim];
+        Image phero = new Image("/sample/phero.png");
+        Image aihero = new Image("/sample/aihero.png");
+        Image pit = new Image("/sample/pit.png");
+        Image aimage = new Image("/sample/aimage.jpg");
+        Image pmage = new Image("/sample/pmage.jpg");
+        Image pwumpus = new Image("/sample/pwumpus.png");
+        Image aiwumpus = new Image("/sample/aiwumpus.png");
+        Image empty = new Image("/sample/empty.png");
 
         for (int y = 0; y < dim; y++){
             for (int x = 0; x < dim; x++){
                 final int finalX = x;
                 final int finalY = y;
-                cells[x][y] = new Rectangle(size,size);
+                cells[x][y] = new ImageView();
+                cells[x][y].setFitHeight(size);
+                cells[x][y].setFitWidth(size);
                 cells[x][y].setX(offset + x*(size + gap));
                 cells[x][y].setY(offset + y*(size + gap));
                 cells[x][y].setOnMouseClicked(e -> select(finalX,finalY));
+                Cell currCell = g.map[y][x];
+                Image hero = null;
+                Image wumpus = null;
+                Image mage = null;
 
-                switch(g.map[y][x].getType()){
+
+                if(currCell.belongToPlayer() == '1'){
+                    hero = phero;
+                    wumpus = pwumpus;
+                    mage = pmage;
+                }
+                else if (currCell.belongToPlayer() == '2'){
+                    hero = aihero;
+                    wumpus = aiwumpus;
+                    mage = aimage;
+                }
+
+
+                switch(currCell.getType()){
                     case 'E':
-                        cells[x][y].setFill(Color.WHITE);
+                        cells[x][y].setImage(empty);
                         break;
                     case 'H':
-                        cells[x][y].setFill(Color.SILVER);
+                        cells[x][y].setImage(hero);
                         break;
                     case 'M':
-                        cells[x][y].setFill(Color.BLUE);
+                        cells[x][y].setImage(mage);
                         break;
                     case 'W':
-                        cells[x][y].setFill(Color.BROWN);
+                        cells[x][y].setImage(wumpus);
                         break;
                     case 'P':
-                        cells[x][y].setFill(Color.BLACK);
+                        cells[x][y].setImage(pit);
                         break;
                 }
-                cells[x][y].setStroke(Color.BLACK);
+
                 gridPane.getChildren().add(cells[x][y]);
 
             }
         }
     }
 
+    /**
+     * Selects a start/goal pair based on user input.
+     * @param x - cell x coordinate
+     * @param y - cell y coordinate
+     */
     private void select(int x, int y){
         if (start == null){
             start = new Point(x,y);
+            currLabel.setText("Current Selection: [" + x + "," + y + "]");
             return;
         }
         else{
             goal = new Point(x,y);
+            currLabel.setText("Moving to: [" + x + "," + y + "]");
         }
         Cell startCell = g.getCell((int) start.getY(),(int) start.getX());
         Cell goalCell = g.getCell((int) goal.getY(),(int) goal.getX());
@@ -116,9 +166,14 @@ public class Controller {
         goal = null;
     }
 
+    /**
+     * Runs the AI's move and checks if the game is over.
+     */
     @FXML
     private void nextTurn(){
-        l.run(0);
+        int heuristicSelected = heuristicList.getSelectionModel().getSelectedIndex();
+        double val = l.run(heuristicSelected);
+        valueLabel.setText("Move Value: \n" + val);
         buildGrid(g);
         int gameCon = l.checkWin();
         switch (gameCon){
