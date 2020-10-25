@@ -41,6 +41,9 @@ public class Logic {
         double totalAverageDist = 0;
 
         ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
+        if (piecesToUse.size() == 0) {
+            return 0;
+        }
 
         for (Cell cell : piecesToUse) {
             double totalDist = 0;
@@ -99,10 +102,16 @@ public class Logic {
         double totalMinDist = 0;
 
         ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
+        if (piecesToUse.size() == 0) {
+            return 0;
+        }
 
         for (Cell cell : piecesToUse) {
             double minDistToEnemy = Integer.MAX_VALUE;
             ArrayList<Cell> killableEnemyLocations = getKillableEnemyLocations(cell);
+            if (killableEnemyLocations.size() == 0) {
+                continue;
+            }
             int x1 = cell.getRow();
             int y1 = cell.getCol();
 
@@ -120,17 +129,89 @@ public class Logic {
     }
 
     public double calculatePiecesDifference(boolean AI) {
+        // base cases
+        if (AI && map.getAICount() == 0)
+            return -100;
+        if (!AI && map.getPlayerCount() == 0)
+            return -100;
+
+
+        double WEIGHT = 10;
+
+        // get the base calculation for the difference in pieces
+        double base;
+        if (AI)
+            base = (map.getAICount() - map.getPlayerCount()) * WEIGHT;
+        else
+            base =  (map.getPlayerCount() - map.getAICount()) * WEIGHT;
+
+        //now, we will either add or subtract points from the base calculation depending on the number of our
+        //wumpus/hero/mage pieces to the opponent's pieces. We want to prioritize maxing our pieces and minimizing the other players
+        // i.e. if we have 2 wumpus and they have 0 hero's, this is an extremely good situation for us since hero kills wumpus.
+        int AIwumpus, AIhero, AImage;
+        int Pwumpus, Phero, Pmage;
+        AIwumpus = AIhero = AImage = Pwumpus = Phero = Pmage = 0;
+        for (int i = 0; i < map.getMapSize(); i++) {
+            for (int j = 0; j < map.getMapSize(); j++) {
+                Cell cell = this.map.getCell(i,j);
+                if (cell.belongToPlayer() == 2) {
+                    switch(cell.getType()) {
+                        case 'W':
+                            AIwumpus += 1;
+                            break;
+                        case 'H':
+                            AIhero += 1;
+                            break;
+                        case 'M':
+                            AImage += 1;
+                            break;
+                    }
+                } else if (cell.belongToPlayer() == 1) {
+                    switch(cell.getType()) {
+                        case 'W':
+                            Pwumpus += 1;
+                            break;
+                        case 'H':
+                            Phero += 1;
+                            break;
+                        case 'M':
+                            Pmage += 1;
+                            break;
+                    }
+                }
+            }
+        }
+
+        int wumpusAdvantage, heroAdvantage, mageAdvantage;
+        wumpusAdvantage = heroAdvantage = mageAdvantage = 0;
+        if (AI) {
+             wumpusAdvantage = AIwumpus - Phero;
+             heroAdvantage = AIhero - Pmage;
+             mageAdvantage = AImage - Pwumpus;
+        } else {
+             wumpusAdvantage = Pwumpus - AIhero;
+             heroAdvantage = Phero - AImage;
+             mageAdvantage = Pmage - AIwumpus;
+        }
+        base = base + wumpusAdvantage*WEIGHT;
+        base = base + heroAdvantage*WEIGHT;
+        base = base + mageAdvantage*WEIGHT;
+
+        return base;
+    }
+
+    public double calculateTotalPieces(boolean AI) {
         double WEIGHT = 10;
 
         if (AI) { //AI
-            return (map.getAICount() - map.getPlayerCount()) * WEIGHT;
+            return map.getAICount() * WEIGHT;
         }
 
         // PLAYER
-        return (map.getPlayerCount() - map.getAICount()) * WEIGHT;
+        return map.getPlayerCount() * WEIGHT;
     }
 
-    public double calculateHeuristic(int heuristic, boolean AI){ //Heuristics should be in the view of the AI
+    public double calculateHeuristic(int heuristic, boolean AI) { //Heuristics should be in the view of the AI
         switch(heuristic){
             case 0:
 //                if(map.getAICount() != 0 && map.getPlayerCount() == 0){
@@ -140,7 +221,11 @@ public class Logic {
 //                }else{
 //                    return ((map.getAICount() - map.getPlayerCount()) * 10.0);
 //                }
-                double heuristicVal = 0.10*averageDistanceToPits(AI) - (0.30*getAvgClosestKillableEnemy(AI)) + 0.6*calculatePiecesDifference(AI);
+                double heuristicVal =
+                        0.1*averageDistanceToPits(AI)
+                        - (0.2*getAvgClosestKillableEnemy(AI))
+                        + 0.5*calculatePiecesDifference(AI)
+                        + 0.2*calculateTotalPieces(AI);
                 return AI ? heuristicVal : -1*heuristicVal;
             default:
                 break;
