@@ -30,6 +30,8 @@ public class Controller {
     private ListView<String> heuristicList;
     @FXML
     private Label currLabel;
+    @FXML
+    private Label legendLabel;
 
     Grid g = new Grid();
     Logic l = new Logic(g,3);
@@ -41,6 +43,7 @@ public class Controller {
     @FXML
     public void initialize(){
         heuristicList.getItems().addAll(heuristics);
+        legendLabel.setText("Legend: Blue - Player Pieces, Green - AI Pieces.\nDefault Depth: 3.\nDefault Heuristic: Heuristic 0.");
     }
 
 
@@ -171,8 +174,13 @@ public class Controller {
      */
     @FXML
     private void nextTurn(){
+        double val;
         int heuristicSelected = heuristicList.getSelectionModel().getSelectedIndex();
-        double val = l.run(heuristicSelected);
+        if(heuristicSelected == -1){
+            val = l.run(0);
+        }
+        else{val = l.run(heuristicSelected);}
+
         valueLabel.setText("Move Value: \n" + val);
         buildGrid(g);
         int gameCon = l.checkWin();
