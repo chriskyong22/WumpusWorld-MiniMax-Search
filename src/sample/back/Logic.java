@@ -69,15 +69,15 @@ public class Logic {
 
         switch (piece) {
             case 'W':
-                killableEnemies.add('W');
+                //killableEnemies.add('W');
                 killableEnemies.add('M');
                 break;
             case 'H':
-                killableEnemies.add('H');
+                //killableEnemies.add('H');
                 killableEnemies.add('W');
                 break;
             case 'M':
-                killableEnemies.add('M');
+                //killableEnemies.add('M');
                 killableEnemies.add('H');
                 break;
         }
@@ -125,7 +125,7 @@ public class Logic {
             totalMinDist += minDistToEnemy;
         }
 
-        return totalMinDist / piecesToUse.size();
+        return -1 * (totalMinDist / piecesToUse.size());
     }
 
     public double calculatePiecesDifference(boolean AI) {
@@ -337,30 +337,40 @@ public class Logic {
 
 
     public double calculateHeuristic(int heuristic, boolean AI) { //Heuristics should be in the view of the AI
+        double heuristicVal = 0;
+
         switch(heuristic){
             case 0:
-//                if(map.getAICount() != 0 && map.getPlayerCount() == 0){
-//                    return 100;
-//                }else if(map.getPlayerCount() != 0 && map.getAICount() == 0){
-//                    return -100;
-//                }else{
-//                    return ((map.getAICount() - map.getPlayerCount()) * 10.0);
-//                }
-                double heuristicVal =
+                heuristicVal = averageDistanceToPits(AI);
+                return AI ? heuristicVal : -1 * heuristicVal;
+
+            case 1:
+                heuristicVal = getAvgClosestKillableEnemy(AI);
+                return AI ? heuristicVal : -1 * heuristicVal;
+
+            case 2:
+                heuristicVal = calculatePiecesDifference(AI);
+                return AI ? heuristicVal : -1 * heuristicVal;
+
+            case 3:
+                heuristicVal = calculateTotalPieces(AI);
+                return AI ? heuristicVal : -1 * heuristicVal;
+
+            case 4:
+                heuristicVal =
                         0.1*averageDistanceToPits(AI)
-                        - (0.2*getAvgClosestKillableEnemy(AI))
+                        + (0.2*getAvgClosestKillableEnemy(AI))
                         + 0.5*calculatePiecesDifference(AI)
                         + 0.2*calculateTotalPieces(AI);
                 return AI ? heuristicVal : -1*heuristicVal;
-            case 1:
-                double hVal = getAvgFurthestThreat(AI);
-                System.out.println(hVal);
-                return AI ? hVal : -1 * hVal;
+
+            case 5:
+                heuristicVal = getAvgFurthestThreat(AI);
+                return AI ? heuristicVal : -1 * heuristicVal;
 
             default:
-                break;
+                return 0;
         }
-        return -1;
     }
     //Initial Call, a = -infinity | b = +infinity
     public double alphabeta(Grid map, int depth, double a, double b, boolean maximizingPlayer, int heuristicSelected){
