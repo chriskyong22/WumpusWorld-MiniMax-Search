@@ -85,8 +85,8 @@ public class Logic {
         for (int i = 0; i < map.getMapSize(); i++) {
             for (int j = 0; j < map.getMapSize(); j++) {
                 // check if the current piece is an opposing player
-                if ((cell.belongToPlayer() == 1 && this.map.getCell(i,j).belongToPlayer() == 2) ||
-                (cell.belongToPlayer() == 2 && this.map.getCell(i,j).belongToPlayer() == 1)) {
+                if ((cell.belongToPlayer() == '1' && this.map.getCell(i,j).belongToPlayer() == '2') ||
+                (cell.belongToPlayer() == '2' && this.map.getCell(i,j).belongToPlayer() == '1')) {
                     //check if this enemy is killable, given our piece
                     if (killableEnemies.contains(this.map.getCell(i,j).getType())) {
                         killableEnemyLocations.add(map.getCell(i,j));
@@ -131,9 +131,9 @@ public class Logic {
     public double calculatePiecesDifference(boolean AI) {
         // base cases
         if (AI && map.getAICount() == 0)
-            return -100;
+            return -1000;
         if (!AI && map.getPlayerCount() == 0)
-            return -100;
+            return -1000;
 
 
         double WEIGHT = 10;
@@ -154,7 +154,7 @@ public class Logic {
         for (int i = 0; i < map.getMapSize(); i++) {
             for (int j = 0; j < map.getMapSize(); j++) {
                 Cell cell = this.map.getCell(i,j);
-                if (cell.belongToPlayer() == 2) {
+                if (cell.belongToPlayer() == '2') {
                     switch(cell.getType()) {
                         case 'W':
                             AIwumpus += 1;
@@ -166,7 +166,7 @@ public class Logic {
                             AImage += 1;
                             break;
                     }
-                } else if (cell.belongToPlayer() == 1) {
+                } else if (cell.belongToPlayer() == '1') {
                     switch(cell.getType()) {
                         case 'W':
                             Pwumpus += 1;
@@ -235,9 +235,9 @@ public class Logic {
 
         for (int i=0; i<map.getMapSize(); i++){
             for (int j=0; j<map.getMapSize(); j++){
-                if ((cell.belongToPlayer() == 1 && this.map.getCell(i,j).belongToPlayer() == 2) ||
-                        (cell.belongToPlayer() == 2 && this.map.getCell(i,j).belongToPlayer() == 1)) {
-                    if(threats.contains(this.map.getCell(i,j).getType())){
+                if ((cell.belongToPlayer() == '1' && this.map.getCell(i,j).belongToPlayer() == '2') ||
+                        (cell.belongToPlayer() == '2' && this.map.getCell(i,j).belongToPlayer() == '1')) {
+                    if(threats.contains(this.map.getCell(i,j).getType())) {
                         threatLocations.add(map.getCell(i,j));
                     }
                 }
@@ -254,7 +254,7 @@ public class Logic {
             return 0;
         }
 
-        for (Cell cell : piecesToUse){
+        for (Cell cell : piecesToUse) {
             double maxDistToEnemy = 0;
             ArrayList<Cell> threatLocations = getThreatLocations(cell);
             if(threatLocations.size() == 0){
@@ -295,8 +295,8 @@ public class Logic {
 
         for (int i=0; i<map.getMapSize(); i++) {
             for (int j = 0; j < map.getMapSize(); j++) {
-                if ((cell.belongToPlayer() == 1 && this.map.getCell(i,j).belongToPlayer() == 1) ||
-                        (cell.belongToPlayer() == 2 && this.map.getCell(i,j).belongToPlayer() == 2)) {
+                if ((cell.belongToPlayer() == '1' && this.map.getCell(i,j).belongToPlayer() == '1') ||
+                        (cell.belongToPlayer() == '2' && this.map.getCell(i,j).belongToPlayer() == '2')) {
                     if(savableAllies.contains(this.map.getCell(i, j).getType())){
                         savableAllyLocations.add(map.getCell(i, j));
                     }
@@ -353,9 +353,10 @@ public class Logic {
                         + 0.2*calculateTotalPieces(AI);
                 return AI ? heuristicVal : -1*heuristicVal;
             case 1:
-                System.out.println(6);
                 double hVal = getAvgFurthestThreat(AI);
+                System.out.println(hVal);
                 return AI ? hVal : -1 * hVal;
+
             default:
                 break;
         }
