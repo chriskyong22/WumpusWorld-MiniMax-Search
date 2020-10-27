@@ -211,6 +211,131 @@ public class Logic {
         return map.getPlayerCount() * WEIGHT;
     }
 
+
+    private ArrayList<Cell> getThreatLocations(Cell cell) {
+        Character piece = cell.getType();
+
+        ArrayList<Cell> threatLocations = new ArrayList<>();
+        HashSet<Character> threats = new HashSet<>();
+
+        switch (piece){
+            case 'W':
+                threats.add('H');
+                threats.add('W');
+                break;
+            case 'H':
+                threats.add('M');
+                threats.add('H');
+                break;
+            case 'M':
+                threats.add('W');
+                threats.add('M');
+                break;
+        }
+
+        for (int i=0; i<map.getMapSize(); i++){
+            for (int j=0; j<map.getMapSize(); j++){
+                if ((cell.belongToPlayer() == 1 && this.map.getCell(i,j).belongToPlayer() == 2) ||
+                        (cell.belongToPlayer() == 2 && this.map.getCell(i,j).belongToPlayer() == 1)) {
+                    if(threats.contains(this.map.getCell(i,j).getType())){
+                        threatLocations.add(map.getCell(i,j));
+                    }
+                }
+            }
+        }
+        return threatLocations;
+    }
+
+    public double getAvgFurthestThreat(boolean AI){
+        double totalMaxDist = 0;
+
+        ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
+        if(piecesToUse.size() == 0){
+            return 0;
+        }
+
+        for (Cell cell : piecesToUse){
+            double maxDistToEnemy = 0;
+            ArrayList<Cell> threatLocations = getThreatLocations(cell);
+            if(threatLocations.size() == 0){
+                continue;
+            }
+            int x1 = cell.getRow();
+            int y1 = cell.getCol();
+
+            for (Cell threatLocation : threatLocations){
+                int x2 = threatLocation.getRow();
+                int y2 = threatLocation.getCol();
+                double euclideanDist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+                maxDistToEnemy += euclideanDist;
+            }
+            totalMaxDist += maxDistToEnemy / threatLocations.size();
+        }
+
+        return totalMaxDist / piecesToUse.size();
+    }
+
+    private ArrayList<Cell> getSavableAllyLocations(Cell cell) {
+        Character piece  = cell.getType();
+
+        ArrayList<Cell> savableAllyLocations = new ArrayList<>();
+        HashSet<Character> savableAllies = new HashSet<>();
+
+        switch (piece){
+            case 'W':
+                savableAllies.add('H');
+                break;
+            case 'H':
+                savableAllies.add('M');
+                break;
+            case 'M':
+                savableAllies.add('W');
+                break;
+        }
+
+        for (int i=0; i<map.getMapSize(); i++) {
+            for (int j = 0; j < map.getMapSize(); j++) {
+                if ((cell.belongToPlayer() == 1 && this.map.getCell(i,j).belongToPlayer() == 1) ||
+                        (cell.belongToPlayer() == 2 && this.map.getCell(i,j).belongToPlayer() == 2)) {
+                    if(savableAllies.contains(this.map.getCell(i, j).getType())){
+                        savableAllyLocations.add(map.getCell(i, j));
+                    }
+                }
+            }
+        }
+        return savableAllyLocations;
+    }
+
+    public double getAvgClosestSavableAlly(boolean AI){
+        double totalMinDist = 0;
+
+        ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
+        if (piecesToUse.size() == 0) {
+            return 0;
+        }
+
+        for (Cell cell : piecesToUse){
+            double minDistToAlly = Integer.MAX_VALUE;
+            ArrayList<Cell> savableAllyLocations = getSavableAllyLocations(cell);
+            if(savableAllyLocations.size() == 0){
+                continue;
+            }
+            int x1 = cell.getRow();
+            int y1 = cell.getCol();
+
+            for (Cell savableAllyLocation : savableAllyLocations){
+                int x2 = savableAllyLocation.getRow();
+                int y2 = savableAllyLocation.getCol();
+                double euclideanDist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+                minDistToAlly = Math.min(minDistToAlly, euclideanDist);
+            }
+            totalMinDist += minDistToAlly;
+        }
+        return totalMinDist / piecesToUse.size();
+    }
+
+
+
     public double calculateHeuristic(int heuristic, boolean AI) { //Heuristics should be in the view of the AI
         switch(heuristic){
             case 0:
@@ -227,6 +352,10 @@ public class Logic {
                         + 0.5*calculatePiecesDifference(AI)
                         + 0.2*calculateTotalPieces(AI);
                 return AI ? heuristicVal : -1*heuristicVal;
+            case 1:
+                System.out.println(6);
+                double hVal = getAvgFurthestThreat(AI);
+                return AI ? hVal : -1 * hVal;
             default:
                 break;
         }
