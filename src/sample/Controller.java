@@ -179,7 +179,7 @@ public class Controller {
         if(heuristicSelected == -1){
             val = l.run(0);
         }
-        else{val = l.run(heuristicSelected -1);}
+        else{val = l.run(heuristicSelected);}
 
         valueLabel.setText("Move Value: \n" + val);
         buildGrid(g);
