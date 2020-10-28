@@ -35,7 +35,7 @@ public class Controller {
 
     Grid g = new Grid();
     Logic l = new Logic(g,3);
-    String[] heuristics = new String[]{"1. Distance To Pits","2. Closest Killable Enemy","3. Difference in Pieces","4. Total Pieces","5. Weighted Offensive Heuristic", "6. Maximum Distance From Thread", "7. Defense With Allies", "8. Weighted Defensive Heuristic"};
+    String[] heuristics = new String[]{"1. Distance To Pits","2. Closest Killable Enemy","3. Difference in Pieces","4. Total Pieces", "5. Maximum Distance From Threat", "6. Weighted Heuristics 1-5"};
     Point start = null;
     Point goal = null;
 

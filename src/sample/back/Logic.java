@@ -246,7 +246,7 @@ public class Logic {
         return threatLocations;
     }
 
-    public double getAvgFurthestThreat(boolean AI){
+    public double getAvgFurthestThreat(boolean AI) {
         double totalMaxDist = 0;
 
         ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
@@ -263,78 +263,17 @@ public class Logic {
             int x1 = cell.getRow();
             int y1 = cell.getCol();
 
-            for (Cell threatLocation : threatLocations){
+            for (Cell threatLocation : threatLocations) {
                 int x2 = threatLocation.getRow();
                 int y2 = threatLocation.getCol();
                 double euclideanDist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
                 maxDistToEnemy += euclideanDist;
             }
-            totalMaxDist += maxDistToEnemy / threatLocations.size();
+            totalMaxDist = totalMaxDist + (maxDistToEnemy / threatLocations.size());
         }
 
-        return totalMaxDist / piecesToUse.size();
+        return totalMaxDist / this.map.getMapSize();
     }
-
-    private ArrayList<Cell> getSavableAllyLocations(Cell cell) {
-        Character piece  = cell.getType();
-
-        ArrayList<Cell> savableAllyLocations = new ArrayList<>();
-        HashSet<Character> savableAllies = new HashSet<>();
-
-        switch (piece){
-            case 'W':
-                savableAllies.add('H');
-                break;
-            case 'H':
-                savableAllies.add('M');
-                break;
-            case 'M':
-                savableAllies.add('W');
-                break;
-        }
-
-        for (int i=0; i<map.getMapSize(); i++) {
-            for (int j = 0; j < map.getMapSize(); j++) {
-                if ((cell.belongToPlayer() == '1' && this.map.getCell(i,j).belongToPlayer() == '1') ||
-                        (cell.belongToPlayer() == '2' && this.map.getCell(i,j).belongToPlayer() == '2')) {
-                    if(savableAllies.contains(this.map.getCell(i, j).getType())){
-                        savableAllyLocations.add(map.getCell(i, j));
-                    }
-                }
-            }
-        }
-        return savableAllyLocations;
-    }
-
-    public double getAvgClosestSavableAlly(boolean AI){
-        double totalMinDist = 0;
-
-        ArrayList<Cell> piecesToUse = AI ? this.map.getAICells() : this.map.getPlayerCells();
-        if (piecesToUse.size() == 0) {
-            return 0;
-        }
-
-        for (Cell cell : piecesToUse){
-            double minDistToAlly = Integer.MAX_VALUE;
-            ArrayList<Cell> savableAllyLocations = getSavableAllyLocations(cell);
-            if(savableAllyLocations.size() == 0){
-                continue;
-            }
-            int x1 = cell.getRow();
-            int y1 = cell.getCol();
-
-            for (Cell savableAllyLocation : savableAllyLocations){
-                int x2 = savableAllyLocation.getRow();
-                int y2 = savableAllyLocation.getCol();
-                double euclideanDist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-                minDistToAlly = Math.min(minDistToAlly, euclideanDist);
-            }
-            totalMinDist += minDistToAlly;
-        }
-        return totalMinDist / piecesToUse.size();
-    }
-
-
 
     public double calculateHeuristic(int heuristic, boolean AI) { //Heuristics should be in the view of the AI
         double heuristicVal = 0;
@@ -357,15 +296,16 @@ public class Logic {
                 return AI ? heuristicVal : -1 * heuristicVal;
 
             case 4:
-                heuristicVal =
-                        0.1*averageDistanceToPits(AI)
-                        + (0.2*getAvgClosestKillableEnemy(AI))
-                        + 0.5*calculatePiecesDifference(AI)
-                        + 0.2*calculateTotalPieces(AI);
-                return AI ? heuristicVal : -1*heuristicVal;
+                heuristicVal = getAvgFurthestThreat(AI);
+                return AI ? heuristicVal : -1 * heuristicVal;
 
             case 5:
-                heuristicVal = getAvgFurthestThreat(AI);
+                heuristicVal =
+                        0.05*averageDistanceToPits(AI)
+                        + (0.15*getAvgClosestKillableEnemy(AI))
+                        + 0.5*calculatePiecesDifference(AI)
+                        + 0.2*calculateTotalPieces(AI)
+                        + 0.10*getAvgFurthestThreat(AI);
                 return AI ? heuristicVal : -1 * heuristicVal;
 
             default:
