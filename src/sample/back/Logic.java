@@ -58,7 +58,7 @@ public class Logic {
             totalAverageDist += (totalDist / this.map.getPitLocations().size());
         }
 
-        return totalAverageDist / piecesToUse.size();
+        return totalAverageDist / this.map.getMapSize();
     }
 
     public ArrayList<Cell> getKillableEnemyLocations(Cell cell) {
@@ -107,7 +107,7 @@ public class Logic {
         }
 
         for (Cell cell : piecesToUse) {
-            double minDistToEnemy = Integer.MAX_VALUE;
+            double curMinDist = Integer.MAX_VALUE;
             ArrayList<Cell> killableEnemyLocations = getKillableEnemyLocations(cell);
             if (killableEnemyLocations.size() == 0) {
                 continue;
@@ -119,13 +119,13 @@ public class Logic {
                 int x2 = killableEnemyLocation.getRow();
                 int y2 = killableEnemyLocation.getCol();
                 double euclideanDist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-                minDistToEnemy = Math.min(minDistToEnemy, euclideanDist);
+                curMinDist = Math.min(curMinDist, euclideanDist);
             }
 
-            totalMinDist += minDistToEnemy;
+            totalMinDist += curMinDist;
         }
 
-        return -1 * (totalMinDist / piecesToUse.size());
+        return -1 * (totalMinDist / this.map.getMapSize());
     }
 
     public double calculatePiecesDifference(boolean AI) {
@@ -373,7 +373,7 @@ public class Logic {
         }
     }
     //Initial Call, a = -infinity | b = +infinity
-    public double alphabeta(Grid map, int depth, double a, double b, boolean maximizingPlayer, int heuristicSelected){
+    public double alphabeta(Grid map, int depth, double a, double b, boolean maximizingPlayer, int heuristicSelected) {
         if(depth == 0 || checkWin() != -1){
             return calculateHeuristic(heuristicSelected, maximizingPlayer);
         }
