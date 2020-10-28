@@ -161,7 +161,7 @@ public class Controller {
         }
         Cell startCell = g.getCell((int) start.getY(),(int) start.getX());
         Cell goalCell = g.getCell((int) goal.getY(),(int) goal.getX());
-        if(l.isValidMove(startCell,goalCell)) {
+        if(l.validPlayerMove(startCell,goalCell)) {
             l.move(startCell, goalCell);
             buildGrid(g);
         }

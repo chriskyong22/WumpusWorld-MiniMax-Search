@@ -559,6 +559,26 @@ public class Logic {
     }
 
     /**
+     * Checks if a player move is valid
+     * @param cell1 Origin Cell
+     * @param cell2 Destination Cell
+     * @return true if can move Origin to Destination, false otherwise
+     */
+    public boolean validPlayerMove(Cell cell1, Cell cell2){
+        return isValidMove(cell1, cell2) && cell1.belongToPlayer() == '1' && isNeighbor(cell1, cell2);
+    }
+
+    /**
+     * Checks if two cells are neighbors
+     * @param c1 Cell 1
+     * @param c2 Cell 2
+     * @return true if neighbors, false if not neighbors
+     */
+    public boolean isNeighbor(Cell c1, Cell c2){
+        return (c2.getRow() - 1 == c1.getRow() || c2.getRow() + 1 == c1.getRow() || c2.getRow() == c1.getRow()) &&
+                (c2.getCol() - 1 == c1.getCol() || c2.getCol() + 1 == c1.getCol() || c2.getCol() == c1.getCol());
+    }
+    /**
      *
      * @param cell1
      * @param cell2
