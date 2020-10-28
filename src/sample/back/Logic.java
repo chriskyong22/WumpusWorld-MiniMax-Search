@@ -125,7 +125,7 @@ public class Logic {
             totalMinDist += curMinDist;
         }
 
-        return -1 * totalMinDist;
+        return -1 * (totalMinDist / this.map.getMapSize());
     }
 
     public double calculatePiecesDifference(boolean AI) {
