@@ -157,13 +157,13 @@ public class Controller {
         }
         else{
             goal = new Point(x,y);
-            currLabel.setText("Moving to: [" + x + "," + y + "]");
         }
         Cell startCell = g.getCell((int) start.getY(),(int) start.getX());
         Cell goalCell = g.getCell((int) goal.getY(),(int) goal.getX());
         if(l.validPlayerMove(startCell,goalCell)) {
             l.move(startCell, goalCell);
             buildGrid(g);
+            currLabel.setText("Moving to: [" + x + "," + y + "]");
         }
         start = null;
         goal = null;
